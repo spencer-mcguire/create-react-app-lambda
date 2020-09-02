@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import netlifyAuth from './netlifyAuth';
 
-import logo from './logo.svg';
+// import logo from './logo.svg';
 import './App.css';
 
 const App = () => {
@@ -11,8 +11,9 @@ const App = () => {
   useEffect(() => {
     netlifyAuth.initialize((user) => {
       setLoggedIn(!!user);
+      setUser(user);
     });
-  }, []);
+  }, [loggedIn]);
 
   let login = () => {
     netlifyAuth.authenticate((user) => {
@@ -32,9 +33,12 @@ const App = () => {
   return (
     <div className='App'>
       <header className='App-header'>
-        <img src={logo} className='App-logo' alt='logo' />
         {loggedIn ? (
-          <div>You are logged in!</div>
+          <div>
+            You are logged in! +{' '}
+            {user && <>Welcome {user?.user_metadata.full_name}!</>}
+            <br />+ <button onClick={logout}>+ Log out here.</button>
+          </div>
         ) : (
           <button onClick={login}>Log in here.</button>
         )}
