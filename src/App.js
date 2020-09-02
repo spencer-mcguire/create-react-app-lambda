@@ -8,6 +8,7 @@ import {
 
 // import logo from './logo.svg';
 import './App.css';
+
 import { Welcome } from './components/Welcome';
 
 const PublicRoute = (props: Props) => {
