@@ -9,7 +9,6 @@ import {
 // import logo from './logo.svg';
 import './App.css';
 
-// import { Hidden } from './components/Hidden';
 import { Welcome } from './components/Welcome';
 
 const PublicRoute = (props: Props) => {
@@ -54,8 +53,8 @@ const App = () => {
       <BrowserRouter>
         <Switch>
           <PublicRoute exact path='/' component={Welcome} />
-          <PublicRoute exact path='/welcome' component={Welcome} />
-          <PrivateRoute path='/home' component={LambdaDemo} />
+          <PublicRoute exact path='/welcome' component={LambdaDemo} />
+          <PrivateRoute path='/home' component={Welcome} />
         </Switch>
       </BrowserRouter>
       <div className='App'>
