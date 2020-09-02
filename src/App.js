@@ -1,8 +1,26 @@
 import React, { useState, useEffect } from 'react';
+import { BrowserRouter, Redirect, Route, Switch } from 'react-router-dom';
 import netlifyAuth from './netlifyAuth';
+import {
+  IdentityContextProvider,
+  useIdentityContext,
+} from 'react-netlify-identity';
 
 // import logo from './logo.svg';
 import './App.css';
+
+import { Hidden } from './components/Hidden';
+import { Welcome } from './components/Welcome';
+
+const PublicRoute = (props: Props) => {
+  const { isLoggedIn } = useIdentityContext();
+  return isLoggedIn ? <Redirect to='/home' /> : <Route {...props} />;
+};
+
+const PrivateRoute = (props: Props) => {
+  const { isLoggedIn } = useIdentityContext();
+  return isLoggedIn ? <Route {...props} /> : <Redirect to='/welcome' />;
+};
 
 const App = () => {
   let [loggedIn, setLoggedIn] = useState(netlifyAuth.isAuthenticated);
@@ -12,6 +30,7 @@ const App = () => {
     netlifyAuth.initialize((user) => {
       setLoggedIn(!!user);
       setUser(user);
+      console.log(user);
     });
   }, [loggedIn]);
 
@@ -31,22 +50,31 @@ const App = () => {
   };
 
   return (
-    <div className='App'>
-      <header className='App-header'>
-        {loggedIn ? (
-          <div>
-            You are logged in! +{' '}
-            {user && <>Welcome {user?.user_metadata.full_name}!</>}
-            <br />+ <button onClick={logout}>+ Log out here.</button>
-          </div>
-        ) : (
-          <button onClick={login}>Log in here.</button>
-        )}
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-      </header>
-    </div>
+    <IdentityContextProvider url='https://testingident.netlify.app/.netlify/identity'>
+      <BrowserRouter>
+        <Switch>
+          <PublicRoute exact path='/' component={Welcome} />
+          <PublicRoute exact path='/welcome' component={Welcome} />
+          <PrivateRoute path='/home' component={Hidden} />
+        </Switch>
+      </BrowserRouter>
+      <div className='App'>
+        <header className='App-header'>
+          {loggedIn ? (
+            <div>
+              You are logged in! +{' '}
+              {user && <>Welcome {user?.user_metadata.full_name}!</>}
+              <br />+ <button onClick={logout}>+ Log out here.</button>
+            </div>
+          ) : (
+            <button onClick={login}>Log in here.</button>
+          )}
+          <p>
+            Edit <code>src/App.js</code> and save to reload.
+          </p>
+        </header>
+      </div>
+    </IdentityContextProvider>
   );
 };
 
