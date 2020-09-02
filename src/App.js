@@ -9,15 +9,15 @@ import {
 // import logo from './logo.svg';
 import './App.css';
 
-import { Hidden } from './components/Hidden';
+// import { Hidden } from './components/Hidden';
 import { Welcome } from './components/Welcome';
 
-const PublicRoute = (props: Props) => {
+const PublicRoute = (props) => {
   const { isLoggedIn } = useIdentityContext();
   return isLoggedIn ? <Redirect to='/home' /> : <Route {...props} />;
 };
 
-const PrivateRoute = (props: Props) => {
+const PrivateRoute = (props) => {
   const { isLoggedIn } = useIdentityContext();
   return isLoggedIn ? <Route {...props} /> : <Redirect to='/welcome' />;
 };
