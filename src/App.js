@@ -12,12 +12,12 @@ import './App.css';
 // import { Hidden } from './components/Hidden';
 import { Welcome } from './components/Welcome';
 
-const PublicRoute = (props) => {
+const PublicRoute = (props: Props) => {
   const { isLoggedIn } = useIdentityContext();
   return isLoggedIn ? <Redirect to='/home' /> : <Route {...props} />;
 };
 
-const PrivateRoute = (props) => {
+const PrivateRoute = (props: Props) => {
   const { isLoggedIn } = useIdentityContext();
   return isLoggedIn ? <Route {...props} /> : <Redirect to='/welcome' />;
 };
