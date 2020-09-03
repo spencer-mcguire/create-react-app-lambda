@@ -3,76 +3,62 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 exports.handler = async function ({ body, headers }, context) {
   try {
+    // make sure this event was sent legitimately.
     const stripeEvent = stripe.webhooks.constructEvent(
       body,
       headers['stripe-signature'],
       process.env.STRIPE_WEBHOOK_SECRET
     );
 
-    if (stripeEvent.type === 'customer.subscription.updated') {
-      const subscription = stripeEvent.data.object;
+    // bail if this is not a subscription update event
+    if (stripeEvent.type !== 'customer.subscription.updated') return;
 
-      const stripeID = subscription.customer;
-      const plan = subscription.items.data[0].plan.nickname;
+    const subscription = stripeEvent.data.object;
 
-      const role = `sub:${plan.split(' ')[0].toLowerCase()}`;
-
-      const result = await axios({
-        method: 'post',
-        url: 'https://graphql.fauna.com/graphql',
-        headers: {
-          Accept: 'application/json',
-          Authorization: `Bearer ${process.env.FAUNA_SERVER_KEY}`,
+    const result = await axios({
+      method: 'put',
+      url: `${identity.url}/admin/users/${netlifyID}`,
+      headers: {
+        Accept: 'application/json',
+        Authorization: `Bearer ${identity.token}`,
+      },
+      data: {
+        app_metadata: {
+          roles: [role],
         },
-        data: {
-          query: `
-                query ($stripeID: ID!) {
-                  getUserByStripeID(stripeID: $stripeID) {
-                    netlifyID
-                  }
-                }
-                `,
-          variables: {
-            stripeID: stripeID,
-          },
+      },
+    })
+      .then((res) => res)
+      .catch((err) => console.error(JSON.stringify(err, null, 2)));
+
+    console.log(result);
+
+    const { netlifyID } = result.data.getUserByStripeID;
+
+    // take the first word of the plan name and use it as the role
+    const plan = subscription.items.data[0].plan.nickname;
+    const role = plan.split(' ')[0].toLowerCase();
+
+    // send a call to the Netlify Identity admin API to update the user role
+    const { identity } = context.clientContext;
+    await fetch(`${identity.url}/admin/users/${netlifyID}`, {
+      method: 'PUT',
+      headers: {
+        // note that this is a special admin token for the Identity API
+        Authorization: `Bearer ${identity.token}`,
+      },
+      body: JSON.stringify({
+        app_metadata: {
+          roles: [role],
         },
-      })
-        .then((res) => res.data)
-        .catch((err) => console.error(JSON.stringify(err, null, 2)));
-
-      const netlifyID = result.data.getUserByStripeID.netlifyID;
-
-      const { identity } = context.clientContext;
-
-      const response = await axios({
-        method: 'put',
-        url: `${identity.url}/admin/users/${netlifyID}`,
-        headers: {
-          Accept: 'application/json',
-          Authorization: `Bearer ${identity.token}`,
-        },
-        data: {
-          app_metadata: {
-            roles: [role],
-          },
-        },
-      })
-        .then((res) => res)
-        .then((res) => console.log(res))
-        .catch((err) => console.error(JSON.stringify(err, null, 2)));
-
-      console.log(response);
-
-      //   console.log(JSON.stringify(subscription, null, 2));
-    }
+      }),
+    });
 
     return {
       statusCode: 200,
       body: JSON.stringify({ received: true }),
     };
   } catch (err) {
-    console.log(`Stripe webhook failed with ${err}`);
-
     return {
       statusCode: 400,
       body: `Webhook Error: ${err.message}`,
