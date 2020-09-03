@@ -33,7 +33,13 @@ const App = () => {
         const currentUser = netlifyIdentity.currentUser();
 
         const { roles } = currentUser.app_metadata;
-        console.log(roles);
+
+        //   fetch('/.netlify/functions/create-manage-link', {
+        //     method: 'POST',
+        //     headers: {
+        //       Authorization: `Bearer ${token}`,
+        //     },
+        //   }).then((response) => response.json());
       });
       setLoggedIn(!!user);
       setUser(user);
@@ -55,6 +61,19 @@ const App = () => {
     });
   };
 
+  const redirectToManage = (api) => (e) => {
+    e.preventDefault();
+    fetch('/.netlify/functions/' + api, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${user.token.access_token}`,
+      },
+    })
+      .then((res) => res.json())
+      .then((link) => (window.location.href = link))
+      .catch((err) => console.log(err));
+  };
+
   return (
     <IdentityContextProvider url={process.env.REACT_APP_IDENITY_URL}>
       <BrowserRouter>
@@ -71,7 +90,9 @@ const App = () => {
               You are logged in! +{' '}
               {user && <>Welcome {user?.user_metadata.full_name}!</>}
               <br />+ <button onClick={logout}>+ Log out here.</button>
-              <button>Your Account</button>
+              <button onClick={redirectToManage('create-manage-link')}>
+                Your Account
+              </button>
             </div>
           ) : (
             <button onClick={login}>Log in here.</button>
