@@ -19,15 +19,15 @@ exports.handler = async function (event, context) {
 
   // stripe customer ID
   // create the customer in stripe using sign in email
-  const customer = await stripe.customers.create({ email: user.email });
+  // const customer = await stripe.customers.create({ email: user.email });
 
-  // create a subscription to the free plan by default
-  await stripe.subscriptions.create({
-    customer: customer.id,
-    items: [{ price: 'price_1HNIh6Dh9rhRSslu8hKl5vfw' }],
-  });
+  // // create a subscription to the free plan by default
+  // await stripe.subscriptions.create({
+  //   customer: customer.id,
+  //   items: [{ price: 'price_1HNIh6Dh9rhRSslu8hKl5vfw' }],
+  // });
 
-  const stripeID = customer.id;
+  const stripeID = 2;
 
   //call to Fauna DB
   const response = await fetch('https://graphql.fauna.com/graphql', {
