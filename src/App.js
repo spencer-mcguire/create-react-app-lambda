@@ -5,6 +5,7 @@ import {
   IdentityContextProvider,
   useIdentityContext,
 } from 'react-netlify-identity';
+import netlifyIdentity from 'netlify-identity-widget';
 
 // import logo from './logo.svg';
 import './App.css';
@@ -27,9 +28,15 @@ const App = () => {
 
   useEffect(() => {
     netlifyAuth.initialize((user) => {
+      if (!user) return;
+      netlifyIdentity.refresh().then((token) => {
+        const currentUser = netlifyIdentity.currentUser();
+
+        const { roles } = currentUser.app_metadata;
+        console.log(roles);
+      });
       setLoggedIn(!!user);
       setUser(user);
-      console.log(user);
     });
   }, [loggedIn]);
 
@@ -64,6 +71,7 @@ const App = () => {
               You are logged in! +{' '}
               {user && <>Welcome {user?.user_metadata.full_name}!</>}
               <br />+ <button onClick={logout}>+ Log out here.</button>
+              <button>Your Account</button>
             </div>
           ) : (
             <button onClick={login}>Log in here.</button>
