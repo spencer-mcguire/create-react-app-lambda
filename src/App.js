@@ -29,13 +29,17 @@ const App = () => {
   useEffect(() => {
     netlifyAuth.initialize((user) => {
       if (!user) return;
-      netlifyIdentity.refresh().then((token) => {
-        console.log(token);
-      });
+      netlifyIdentity
+        .currentUser()
+        .jwt(true)
+        .then((token) => {
+          console.log(token);
+        });
       setLoggedIn(!!user);
       setUser(user);
+      console.log(user);
     });
-  }, [loggedIn]);
+  }, []);
 
   let login = () => {
     netlifyAuth.authenticate((user) => {
