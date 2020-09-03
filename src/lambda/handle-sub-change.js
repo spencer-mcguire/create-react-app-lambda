@@ -16,22 +16,27 @@ exports.handler = async function ({ body, headers }, context) {
     const subscription = stripeEvent.data.object;
 
     const result = await axios({
-      method: 'put',
-      url: `${identity.url}/admin/users/${netlifyID}`,
+      method: 'post',
+      url: 'https://graphql.fauna.com/graphql',
       headers: {
         Accept: 'application/json',
-        Authorization: `Bearer ${identity.token}`,
+        Authorization: `Bearer ${process.env.FAUNA_SERVER_KEY}`,
       },
       data: {
-        app_metadata: {
-          roles: [role],
+        query: `
+          query ($stripeID: ID!) {
+            getUserByStripeID(stripeID: $stripeID) {
+              netlifyID
+            }
+          }
+                `,
+        variables: {
+          stripeID: subscription.customer,
         },
       },
     })
-      .then((res) => res)
+      .then((res) => res.data)
       .catch((err) => console.error(JSON.stringify(err, null, 2)));
-
-    console.log(result);
 
     const { netlifyID } = result.data.getUserByStripeID;
 
@@ -39,19 +44,22 @@ exports.handler = async function ({ body, headers }, context) {
     const plan = subscription.items.data[0].plan.nickname;
     const role = plan.split(' ')[0].toLowerCase();
 
-    // send a call to the Netlify Identity admin API to update the user role
     const { identity } = context.clientContext;
-    await fetch(`${identity.url}/admin/users/${netlifyID}`, {
-      method: 'PUT',
+
+    // send a call to the Netlify Identity admin API to update the user role
+    await axios({
+      method: 'put',
+      url: `${identity.url}/admin/users/${netlifyID}`,
       headers: {
+        Accept: 'application/json',
         // note that this is a special admin token for the Identity API
         Authorization: `Bearer ${identity.token}`,
       },
-      body: JSON.stringify({
+      data: {
         app_metadata: {
           roles: [role],
         },
-      }),
+      },
     });
 
     return {
