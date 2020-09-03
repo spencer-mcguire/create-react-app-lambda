@@ -1,0 +1,81 @@
+import axios from 'axios';
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
+exports.handler = async function ({ body, headers }, context) {
+  try {
+    const stripeEvent = stripe.webhooks.constructEvent(
+      body,
+      headers['stripe-signature'],
+      process.env.STRIPE_WEBHOOK_SECRET
+    );
+
+    if (stripeEvent.type === 'customer.subscription.updated') {
+      const subscription = stripeEvent.data.object;
+
+      const stripeID = subscription.customer;
+      const plan = subscription.items.data[0].plan.nickname;
+
+      const role = `sub:${plan.split(' ')[0].toLowerCase()}`;
+
+      const result = await axios({
+        method: 'post',
+        url: 'https://graphql.fauna.com/graphql',
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${process.env.FAUNA_SERVER_KEY}`,
+        },
+        data: {
+          query: `
+                query ($stripeID: ID!) {
+                  getUserByStripeID(stripeID: $stripeID) {
+                    netlifyID
+                  }
+                }
+                `,
+          variables: {
+            stripeID: stripeID,
+          },
+        },
+      })
+        .then((res) => res.data)
+        .catch((err) => console.error(JSON.stringify(err, null, 2)));
+
+      const netlifyID = result.data.getUserByStripeID.netlifyID;
+
+      const { identity } = context.clientContext;
+
+      const response = await axios({
+        method: 'put',
+        url: `${identity.url}/admin/users/${netlifyID}`,
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${identity.token}`,
+        },
+        data: {
+          app_metadata: {
+            roles: [role],
+          },
+        },
+      })
+        .then((res) => res)
+        .then((res) => console.log(res))
+        .catch((err) => console.error(JSON.stringify(err, null, 2)));
+
+      console.log(response);
+
+      //   console.log(JSON.stringify(subscription, null, 2));
+    }
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ received: true }),
+    };
+  } catch (err) {
+    console.log(`Stripe webhook failed with ${err}`);
+
+    return {
+      statusCode: 400,
+      body: `Webhook Error: ${err.message}`,
+    };
+  }
+};
