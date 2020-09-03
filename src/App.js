@@ -39,7 +39,7 @@ const App = () => {
       setUser(user);
       console.log(user);
     });
-  }, []);
+  }, [loggedIn]);
 
   let login = () => {
     netlifyAuth.authenticate((user) => {
