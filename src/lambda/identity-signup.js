@@ -19,7 +19,7 @@ exports.handler = async function (event, context) {
 
   //call to Fauna DB
   const response = await fetch('https://graphql.fauna.com/graphql', {
-    method: 'Post',
+    method: 'POST',
     headers: {
       Authorization: `Bearer ${process.env.FAUNA_SERVER_KEY}`,
     },
