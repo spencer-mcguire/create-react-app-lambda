@@ -5,42 +5,42 @@
 // https://www.netlify.com/blog/2019/02/21/the-role-of-roles-and-how-to-set-them-in-netlify-identity/
 // https://www.netlify.com/docs/functions/#identity-and-functions
 
-const fetch = require('node-fetch');
+// const fetch = require('node-fetch');
 
 exports.handler = async function (event, context) {
   const { user } = JSON.parse(event.body);
   console.log(JSON.stringify(user, null, 2));
 
-  //netlify user ID
-  const netlifyID = user.id;
+  // //netlify user ID
+  // const netlifyID = user.id;
 
-  // stripe customer ID
-  const stripeID = 2;
+  // // stripe customer ID
+  // const stripeID = 2;
 
-  //call to Fauna DB
-  const response = await fetch('https://graphql.fauna.com/graphql', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${process.env.FAUNA_SERVER_KEY}`,
-    },
-    body: JSON.stringify({
-      query: `
-      mutation($netlifyID: ID! $stripeID: ID!){
-        createUser( data:{netlifyID: $netlifyID, stripeID: $stripeID }){
-          netlifyID
-          stripeID
-        }
-      }`,
-      variables: {
-        netlifyID,
-        stripeID,
-      },
-    }),
-  })
-    .then((res) => res.JSON())
-    .catch((err) => console.error(JSON.stringify(err, null, 2)));
+  // //call to Fauna DB
+  // const response = await fetch('https://graphql.fauna.com/graphql', {
+  //   method: 'POST',
+  //   headers: {
+  //     Authorization: `Bearer ${process.env.FAUNA_SERVER_KEY}`,
+  //   },
+  //   body: JSON.stringify({
+  //     query: `
+  //     mutation($netlifyID: ID! $stripeID: ID!){
+  //       createUser( data:{netlifyID: $netlifyID, stripeID: $stripeID }){
+  //         netlifyID
+  //         stripeID
+  //       }
+  //     }`,
+  //     variables: {
+  //       netlifyID,
+  //       stripeID,
+  //     },
+  //   }),
+  // })
+  //   .then((res) => res.JSON())
+  //   .catch((err) => console.error(JSON.stringify(err, null, 2)));
 
-  console.log({ response });
+  // console.log({ response });
 
   return {
     statusCode: 200,
