@@ -7,8 +7,8 @@
 
 // const fetch = require('node-fetch');
 
-const fetch = require('node-fetch');
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+import axios from 'axios';
+// const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 exports.handler = async function (event, context) {
   const { user } = JSON.parse(event.body);
@@ -30,22 +30,20 @@ exports.handler = async function (event, context) {
   const stripeID = 2;
 
   //call to Fauna DB
-  const response = await fetch('https://graphql.fauna.com/graphql', {
-    method: 'POST',
-
+  const response = await axios({
+    method: 'post',
+    url: 'https://graphql.fauna.com/graphql',
     headers: {
       Authorization: `Bearer ${process.env.FAUNA_SERVER_KEY}`,
     },
-
-    body: JSON.stringify({
+    data: JSON.stringify({
       query: `
-      mutation($netlifyID: ID! $stripeID: ID!){
-        createUser( data:{netlifyID: $netlifyID, stripeID: $stripeID }){
-          netlifyID
-          stripeID
-        }
-      }`,
-
+        mutation($netlifyID: ID! $stripeID: ID!){
+          createUser( data:{netlifyID: $netlifyID, stripeID: $stripeID }){
+            netlifyID
+            stripeID
+          }
+        }`,
       variables: {
         netlifyID,
         stripeID,
@@ -54,6 +52,7 @@ exports.handler = async function (event, context) {
   })
     .then((res) => res.json())
     .catch((err) => console.error(JSON.stringify(err, null, 2)));
+  console.log('response', { response });
 
   console.log('response', { response });
 
