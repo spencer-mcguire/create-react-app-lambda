@@ -7,27 +7,37 @@
 
 // const fetch = require('node-fetch');
 
-import axios from 'axios';
+const fetch = require('node-fetch');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 exports.handler = async function (event, context) {
   const { user } = JSON.parse(event.body);
   // console.log(JSON.stringify(user, null, 2));
-  console.log(JSON.stringify(process.env.FAUNA_SERVER_KEY, null, 2));
 
   //netlify user ID
   const netlifyID = user.id;
 
   // stripe customer ID
-  const stripeID = 2;
+  // create the customer in stripe using sign in email
+  const customer = await stripe.customers.create({ email: user.email });
+
+  // create a subscription to the free plan by default
+  await stripe.subscriptions.create({
+    customer: customer.id,
+    items: [{ price: 'price_1HNIh6Dh9rhRSslu8hKl5vfw' }],
+  });
+
+  const stripeID = customer.id;
 
   //call to Fauna DB
-  const response = await axios({
-    method: 'post',
-    url: 'https://graphql.fauna.com/graphql',
+  const response = await fetch('https://graphql.fauna.com/graphql', {
+    method: 'POST',
+
     headers: {
       Authorization: `Bearer ${process.env.FAUNA_SERVER_KEY}`,
     },
-    data: JSON.stringify({
+
+    body: JSON.stringify({
       query: `
       mutation($netlifyID: ID! $stripeID: ID!){
         createUser( data:{netlifyID: $netlifyID, stripeID: $stripeID }){
@@ -35,13 +45,14 @@ exports.handler = async function (event, context) {
           stripeID
         }
       }`,
+
       variables: {
         netlifyID,
         stripeID,
       },
     }),
   })
-    .then((res) => res.JSON())
+    .then((res) => res.json())
     .catch((err) => console.error(JSON.stringify(err, null, 2)));
 
   console.log('response', { response });
