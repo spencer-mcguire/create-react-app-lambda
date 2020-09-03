@@ -49,7 +49,7 @@ const App = () => {
   };
 
   return (
-    <IdentityContextProvider url='https://testingident.netlify.app/.netlify/identity'>
+    <IdentityContextProvider url={process.env.REACT_APP_IDENITY_URL}>
       <BrowserRouter>
         <Switch>
           <PublicRoute exact path='/' component={Welcome} />
