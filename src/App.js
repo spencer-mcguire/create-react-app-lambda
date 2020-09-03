@@ -30,14 +30,7 @@ const App = () => {
     netlifyAuth.initialize((user) => {
       if (!user) return;
       netlifyIdentity.refresh().then((token) => {
-        // const currentUser = netlifyIdentity.currentUser();
-        // const { roles } = currentUser.app_metadata;
-        //   fetch('/.netlify/functions/create-manage-link', {
-        //     method: 'POST',
-        //     headers: {
-        //       Authorization: `Bearer ${token}`,
-        //     },
-        //   }).then((response) => response.json());
+        console.log(token);
       });
       setLoggedIn(!!user);
       setUser(user);
