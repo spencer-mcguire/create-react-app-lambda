@@ -5,10 +5,8 @@
 // https://www.netlify.com/blog/2019/02/21/the-role-of-roles-and-how-to-set-them-in-netlify-identity/
 // https://www.netlify.com/docs/functions/#identity-and-functions
 
-// const fetch = require('node-fetch');
-
 import axios from 'axios';
-// const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 exports.handler = async function (event, context) {
   const { user } = JSON.parse(event.body);
@@ -19,17 +17,17 @@ exports.handler = async function (event, context) {
 
   // stripe customer ID
   // create the customer in stripe using sign in email
-  // const customer = await stripe.customers.create({ email: user.email });
+  const customer = await stripe.customers.create({ email: user.email });
 
   // // create a subscription to the free plan by default
-  // await stripe.subscriptions.create({
-  //   customer: customer.id,
-  //   items: [{ price: 'price_1HNIh6Dh9rhRSslu8hKl5vfw' }],
-  // });
+  await stripe.subscriptions.create({
+    customer: customer.id,
+    items: [{ price: 'price_1HNIh6Dh9rhRSslu8hKl5vfw' }],
+  });
 
-  const stripeID = 2;
+  const stripeID = customer.id;
 
-  //call to Fauna DB
+  //call to Fauna DB setting sub to free
   const response = await axios({
     method: 'post',
     url: 'https://graphql.fauna.com/graphql',
@@ -52,9 +50,7 @@ exports.handler = async function (event, context) {
   })
     .then((res) => res.json())
     .catch((err) => console.error(JSON.stringify(err, null, 2)));
-  console.log('response', { response });
-
-  console.log('response', { response });
+  console.log({ response });
 
   return {
     statusCode: 200,
