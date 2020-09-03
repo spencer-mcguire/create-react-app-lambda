@@ -12,7 +12,7 @@ import axios from 'axios';
 exports.handler = async function (event, context) {
   const { user } = JSON.parse(event.body);
   console.log(JSON.stringify(user, null, 2));
-  console.log(`Bearer ${process.env.FAUNA_SERVER_KEY}`);
+  console.log(JSON.stringify(process.env.FAUNA_SERVER_KEY));
 
   //netlify user ID
   const netlifyID = user.id;
