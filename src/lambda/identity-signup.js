@@ -10,6 +10,7 @@ const fetch = require('node-fetch');
 exports.handler = async function (event, context) {
   const { user } = JSON.parse(event.body);
   console.log(JSON.stringify(user, null, 2));
+  console.log(`Bearer ${process.env.FAUNA_SERVER_KEY}`);
 
   //netlify user ID
   const netlifyID = user.id;
@@ -40,7 +41,7 @@ exports.handler = async function (event, context) {
     .then((res) => res.JSON())
     .catch((err) => console.error(JSON.stringify(err, null, 2)));
 
-  console.log({ response });
+  console.log('response', { response });
 
   return {
     statusCode: 200,
