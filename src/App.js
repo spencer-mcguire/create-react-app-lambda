@@ -30,10 +30,8 @@ const App = () => {
     netlifyAuth.initialize((user) => {
       if (!user) return;
       netlifyIdentity.refresh().then((token) => {
-        const currentUser = netlifyIdentity.currentUser();
-
-        const { roles } = currentUser.app_metadata;
-
+        // const currentUser = netlifyIdentity.currentUser();
+        // const { roles } = currentUser.app_metadata;
         //   fetch('/.netlify/functions/create-manage-link', {
         //     method: 'POST',
         //     headers: {
