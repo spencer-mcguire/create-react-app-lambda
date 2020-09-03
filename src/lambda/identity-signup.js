@@ -5,7 +5,9 @@
 // https://www.netlify.com/blog/2019/02/21/the-role-of-roles-and-how-to-set-them-in-netlify-identity/
 // https://www.netlify.com/docs/functions/#identity-and-functions
 
-const fetch = require('node-fetch');
+// const fetch = require('node-fetch');
+
+import axios from 'axios';
 
 exports.handler = async function (event, context) {
   const { user } = JSON.parse(event.body);
@@ -19,12 +21,13 @@ exports.handler = async function (event, context) {
   const stripeID = 2;
 
   //call to Fauna DB
-  const response = await fetch('https://graphql.fauna.com/graphql', {
-    method: 'POST',
+  const response = await axios({
+    method: 'post',
+    url: 'https://graphql.fauna.com/graphql',
     headers: {
       Authorization: `Bearer ${process.env.FAUNA_SERVER_KEY}`,
     },
-    body: JSON.stringify({
+    data: JSON.stringify({
       query: `
       mutation($netlifyID: ID! $stripeID: ID!){
         createUser( data:{netlifyID: $netlifyID, stripeID: $stripeID }){
