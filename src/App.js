@@ -25,19 +25,34 @@ const PrivateRoute = (props: Props) => {
 const App = () => {
   let [loggedIn, setLoggedIn] = useState(netlifyAuth.isAuthenticated);
   let [user, setUser] = useState(null);
-
   useEffect(() => {
     netlifyAuth.initialize((user) => {
       if (!user) return;
       netlifyIdentity.refresh().then((token) => {
-        const currentUser = netlifyIdentity.currentUser();
-        const { roles } = currentUser.app_metadata;
-        console.log(roles);
+        // const currentUser = netlifyIdentity.currentUser();
+        // const { roles } = currentUser.app_metadata;
+        // console.log(roles);
       });
       setLoggedIn(!!user);
       setUser(user);
     });
   }, [loggedIn]);
+
+  // refresh the token
+  useEffect(() => {
+    netlifyIdentity
+      .currentUser()
+      .jwt(true)
+      .then((token) => {
+        // destruct the token
+        const parts = token.split('.');
+        const currentUser = JSON.parse(atob(parts[1]));
+
+        const { roles } = currentUser.app_metadata;
+
+        console.log(roles);
+      });
+  }, []);
 
   let login = () => {
     netlifyAuth.authenticate((user) => {
@@ -67,6 +82,14 @@ const App = () => {
       .catch((err) => console.log(err));
   };
 
+  const refresh = (e) => {
+    e.preventDefault();
+    netlifyIdentity
+      .currentUser()
+      .jwt(true)
+      .then((jwt) => console.log('new token', jwt));
+  };
+
   return (
     <IdentityContextProvider url={process.env.REACT_APP_IDENITY_URL}>
       <BrowserRouter>
@@ -80,9 +103,11 @@ const App = () => {
         <header className='App-header'>
           {loggedIn ? (
             <div>
-              You are logged in! +{' '}
+              You are logged in!{' '}
               {user && <>Welcome {user?.user_metadata.full_name}!</>}
-              <br />+ <button onClick={logout}>+ Log out here.</button>
+              <br /> <button onClick={logout}> Log out here.</button>
+              <p>{JSON.stringify(user.app_metadata, null, 2)}</p>
+              <button onClick={refresh}>refresh token </button>
               <button onClick={redirectToManage('create-manage-link')}>
                 Your Account
               </button>
