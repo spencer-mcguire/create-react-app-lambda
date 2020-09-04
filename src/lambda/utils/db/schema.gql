@@ -1,0 +1,36 @@
+type User {
+  netlifyID: ID!
+  stripeID: ID!
+}
+
+type Instrument {
+  instrument: String!
+  scores: [Scores] @relation
+}
+
+type Collection {
+  type: String!
+  scores: [Scores] @relation
+}
+
+type Scores {
+  name: String!
+  description: String
+  composer: String!
+  tagLine: String
+  difficulty: String!
+  URL: String!
+  purchaseURL: String
+  instrument: [Instrument]! @relation
+  collection: [Collection]! @relation
+  subscription: String!
+  free: Boolean
+}
+
+type Query {
+  getUserByNetlifyID(netlifyID: ID!): User!
+  getUserByStripeID(stripeID: ID!): User!
+  getAllScores: [Scores!]!
+  getScoresBySubsciption(subscription: String!): Scores!
+  getFreeContent(free: Boolean): Scores!
+}

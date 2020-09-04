@@ -49,6 +49,7 @@ const App = () => {
         const currentUser = JSON.parse(atob(parts[1]));
 
         const { roles } = currentUser.app_metadata;
+        setUser(currentUser);
 
         console.log(roles);
       });
